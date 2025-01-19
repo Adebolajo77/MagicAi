@@ -17,7 +17,7 @@ class ExerciseRepCounterImpl : ExerciseRepCounter() {
     // Default position
     private var position = ""
 
-    private enum class State { INITIAL, STANDING, STEPPING, KNEELING }
+    private enum class State { INITIAL, STANDING, KNEELING }
     private var currentState = State.INITIAL
 
     private val leftKneeAngleHistoryXY = mutableListOf<Double>()
@@ -160,7 +160,7 @@ class ExerciseRepCounterImpl : ExerciseRepCounter() {
                     if (currentState == State.KNEELING) State.STANDING.also {
                         val movingHip = minOf(stableLeftHipAngle,stableRightHipAngle)
                         if(movingHip in 130.0..138.0){
-                            sendProgressUpdate(0.75f)
+                            sendProgressUpdate(1.0f)
                         }
                     }
                 }
@@ -169,7 +169,8 @@ class ExerciseRepCounterImpl : ExerciseRepCounter() {
 
                         currentState = if (currentState == State.KNEELING) State.STANDING.also {
                             incrementRepCount()
-                            sendProgressUpdate(1.0f)
+                            sendProgressUpdate(0.0f)
+
 
                         } else State.STANDING
                         standing = true
@@ -180,7 +181,6 @@ class ExerciseRepCounterImpl : ExerciseRepCounter() {
 
                     val hip = minOf(stableLeftHipAngle,stableRightHipAngle)
                     if(hip in 115.0..120.0){
-                        sendProgressUpdate(0.0f)
                         sendProgressUpdate(0.25f)
                     }
 
