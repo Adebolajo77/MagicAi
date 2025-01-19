@@ -159,7 +159,7 @@ class ExerciseRepCounterImpl : ExerciseRepCounter() {
                 if(!standing){
                     if (currentState == State.KNEELING) State.STANDING.also {
                         val movingHip = minOf(stableLeftHipAngle,stableRightHipAngle)
-                        if(movingHip in 130.0..138.0){
+                        if(movingHip in 130.0..148.0){
                             sendProgressUpdate(1.0f)
                         }
                     }
