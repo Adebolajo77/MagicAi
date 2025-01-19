@@ -22,6 +22,6 @@ Before proceeding, make sure you have the following installed on your system:
 
 ### 1. Clone the Repository
 - Open a terminal or command prompt.
-- Run the following command to clone the mCode repository:
+- Run the following command to clone the repository:
   ```bash
   git clone -b master https://github.com/Adebolajo77/MagicAi.git

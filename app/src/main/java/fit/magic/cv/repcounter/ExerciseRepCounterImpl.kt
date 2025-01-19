@@ -12,12 +12,12 @@ class ExerciseRepCounterImpl : ExerciseRepCounter() {
     // Constants for readability and maintainability
     private val STANDING_ANGLE_RANGE = 140.0..180.0
     private val KNEELING_ANGLE_RANGE = 50.0..110.0
-
     private var vectorData = false
-    // Default position
-    private var position = ""
+
+
 
     private enum class State { INITIAL, STANDING, KNEELING }
+
     private var currentState = State.INITIAL
 
     private val leftKneeAngleHistoryXY = mutableListOf<Double>()
@@ -27,8 +27,8 @@ class ExerciseRepCounterImpl : ExerciseRepCounter() {
 
 
     private var standing = false
-    private val smoothingWindowSize = 20
-    private  var progress = 0.0f
+    private val smoothingWindowSize = 30
+    private var progress = 0.0f
 
 
     private fun movingAverage(values: MutableList<Double>, newValue: Double): Double {
@@ -37,18 +37,20 @@ class ExerciseRepCounterImpl : ExerciseRepCounter() {
         return values.average()
     }
 
-    private fun calculateAngle(points: List<DoubleArray>,use2D:Boolean=false): Double {
+    private fun calculateAngle(points: List<DoubleArray>, use2D: Boolean = false): Double {
 
         // Calculate vector v1 (from point B to point A)
         val v1 = if (use2D) {
-            points[0].zip(points[1]) { a, b -> a - b }.take(2).toDoubleArray()  // Only take x, y for 2D
+            points[0].zip(points[1]) { a, b -> a - b }.take(2)
+                .toDoubleArray()  // Only take x, y for 2D
         } else {
             points[0].zip(points[1]) { a, b -> a - b }.toDoubleArray()  // Take x, y, z for 3D
         }
 
         // Calculate vector v2 (from point B to point C)
         val v2 = if (use2D) {
-            points[2].zip(points[1]) { a, b -> a - b }.take(2).toDoubleArray()  // Only take x, y for 2D
+            points[2].zip(points[1]) { a, b -> a - b }.take(2)
+                .toDoubleArray()  // Only take x, y for 2D
         } else {
             points[2].zip(points[1]) { a, b -> a - b }.toDoubleArray()  // Take x, y, z for 3D
         }
@@ -74,7 +76,11 @@ class ExerciseRepCounterImpl : ExerciseRepCounter() {
     ): List<DoubleArray> {
         return indices.map {
             val landmark = landmarks[it]
-            doubleArrayOf(landmark.x().toDouble() * width, landmark.y().toDouble() * height, landmark.z().toDouble() * width)
+            doubleArrayOf(
+                landmark.x().toDouble() * width,
+                landmark.y().toDouble() * height,
+                landmark.z().toDouble() * width
+            )
         }
     }
 
@@ -108,19 +114,25 @@ class ExerciseRepCounterImpl : ExerciseRepCounter() {
                 // shoulder, hip, knee and ankle respectively for both Left and Right
                 val leftIndices = listOf(11, 23, 25, 27)
                 val rightIndices = listOf(12, 24, 26, 28)
-                val viewIndices = listOf(0, 11 ,  12)
+                val viewIndices = listOf(0, 11, 12)
 
                 // extract the landmark of all the coordinate for both Left and Right
-                val leftCoordinates = extractLandmarks(leftIndices, landmarks[0], imageWidth, imageHeight)
-                val rightCoordinates = extractLandmarks(rightIndices, landmarks[0], imageWidth, imageHeight)
-                val viewCoordinates = extractLandmarks(viewIndices, landmarks[0], imageWidth, imageHeight)
+                val leftCoordinates =
+                    extractLandmarks(leftIndices, landmarks[0], imageWidth, imageHeight)
+                val rightCoordinates =
+                    extractLandmarks(rightIndices, landmarks[0], imageWidth, imageHeight)
+                val viewCoordinates =
+                    extractLandmarks(viewIndices, landmarks[0], imageWidth, imageHeight)
 
 
 
-                val (xNose, xRsh, xLsh) = arrayOf(viewCoordinates[0][0], viewCoordinates[1][0], viewCoordinates[2][0])
+                val (xNose, xRsh, xLsh) = arrayOf(
+                    viewCoordinates[0][0],
+                    viewCoordinates[1][0],
+                    viewCoordinates[2][0]
+                )
                 // Define the STEP_RANGE
                 val SHOULDER_RANGE = minOf(xLsh, xRsh)..maxOf(xLsh, xRsh)
-                position = ""
 
                 // Check if the nose is within the range of shoulder positions
                 if (xNose in SHOULDER_RANGE) {
@@ -129,49 +141,62 @@ class ExerciseRepCounterImpl : ExerciseRepCounter() {
                     val dif = abs(midSh - xNose)
 
                     // Update position based on the distance from the midpoint
-                    if (dif <= 2){
-                        position = "FRONT VIEW"
-                            vectorData = false
-                    }else{
-                        position =  "Angle VIEW"
+                    if (dif <= 2) {
+                        vectorData = false
+                    } else {
                         vectorData = true
                     }
-                }
-                else{
-                    position = "SIDE VIEW"
+                } else {
                     vectorData = true
-
                 }
 
 
-                val standingStableLeftKneeAngle = movingAverage(leftKneeAngleHistoryXY, calculateAngle(leftCoordinates.subList(1,4),use2D = true))
-                val standingStableLeftHipAngle = movingAverage(leftHipAngleHistoryXY, calculateAngle(leftCoordinates.subList(0, 4),use2D = true))
-                val standingStableRightKneeAngle = movingAverage(rightKneeAngleHistoryXY, calculateAngle(rightCoordinates.subList(1,4),use2D = true))
-                val standingStableRightHipAngle = movingAverage(rightHipAngleHistoryXY, calculateAngle(rightCoordinates.subList(0, 3),use2D = true))
+                val standingStableLeftKneeAngle = movingAverage(
+                    leftKneeAngleHistoryXY,
+                    calculateAngle(leftCoordinates.subList(1, 4), use2D = true)
+                )
+                val standingStableLeftHipAngle = movingAverage(
+                    leftHipAngleHistoryXY,
+                    calculateAngle(leftCoordinates.subList(0, 4), use2D = true)
+                )
+                val standingStableRightKneeAngle = movingAverage(
+                    rightKneeAngleHistoryXY,
+                    calculateAngle(rightCoordinates.subList(1, 4), use2D = true)
+                )
+                val standingStableRightHipAngle = movingAverage(
+                    rightHipAngleHistoryXY,
+                    calculateAngle(rightCoordinates.subList(0, 3), use2D = true)
+                )
 
 
+                val stableLeftKneeAngle = movingAverage(
+                    leftKneeAngleHistoryXY,
+                    calculateAngle(leftCoordinates.subList(1, 4), use2D = vectorData)
+                )
+                val stableLeftHipAngle = movingAverage(
+                    leftHipAngleHistoryXY,
+                    calculateAngle(leftCoordinates.subList(0, 4), use2D = vectorData)
+                )
+                val stableRightKneeAngle = movingAverage(
+                    rightKneeAngleHistoryXY,
+                    calculateAngle(rightCoordinates.subList(1, 4), use2D = vectorData)
+                )
+                val stableRightHipAngle = movingAverage(
+                    rightHipAngleHistoryXY,
+                    calculateAngle(rightCoordinates.subList(0, 3), use2D = vectorData)
+                )
 
-                val stableLeftKneeAngle = movingAverage(leftKneeAngleHistoryXY, calculateAngle(leftCoordinates.subList(1,4),use2D = vectorData))
-                val stableLeftHipAngle = movingAverage(leftHipAngleHistoryXY, calculateAngle(leftCoordinates.subList(0, 4),use2D = vectorData))
-                val stableRightKneeAngle = movingAverage(rightKneeAngleHistoryXY, calculateAngle(rightCoordinates.subList(1,4),use2D = vectorData))
-                val stableRightHipAngle = movingAverage(rightHipAngleHistoryXY, calculateAngle(rightCoordinates.subList(0, 3),use2D = vectorData))
-
-                if(!standing){
-                    if (currentState == State.KNEELING) State.STANDING.also {
-                        val movingHip = minOf(stableLeftHipAngle,stableRightHipAngle)
-                        if(movingHip in 130.0..148.0){
-                            sendProgressUpdate(1.0f)
-                        }
-                    }
-                }
-                if (isStanding(standingStableLeftKneeAngle, standingStableLeftHipAngle) && isStanding(standingStableRightKneeAngle, standingStableRightHipAngle)) {
+                if (isStanding(
+                        standingStableLeftKneeAngle,
+                        standingStableLeftHipAngle
+                    ) && isStanding(standingStableRightKneeAngle, standingStableRightHipAngle)
+                ) {
                     if (!standing) {
 
                         currentState = if (currentState == State.KNEELING) State.STANDING.also {
+                            sendProgressUpdate(1.0f)
                             incrementRepCount()
                             sendProgressUpdate(0.0f)
-
-
                         } else State.STANDING
                         standing = true
                         Log.d("landmark", "User is standing")
@@ -179,14 +204,19 @@ class ExerciseRepCounterImpl : ExerciseRepCounter() {
                     }
                 } else if (standing) {
 
-                    val hip = minOf(stableLeftHipAngle,stableRightHipAngle)
-                    if(hip in 115.0..120.0){
-                        sendProgressUpdate(0.25f)
+                    val hip = minOf(stableLeftHipAngle, stableRightHipAngle)
+                    if (hip in 115.0..120.0) {
+                        sendProgressUpdate(0.35f)
                     }
 
-                    val kneel = getKneelingLeg(stableLeftKneeAngle, stableLeftHipAngle, stableRightKneeAngle, stableRightHipAngle)
-                    if(kneel==1 || kneel==2){
-                        sendProgressUpdate(0.5f)
+                    val kneel = getKneelingLeg(
+                        stableLeftKneeAngle,
+                        stableLeftHipAngle,
+                        stableRightKneeAngle,
+                        stableRightHipAngle
+                    )
+                    if (kneel == 1 || kneel == 2) {
+                        sendProgressUpdate(0.75f)
                         standing = false
                         currentState = State.KNEELING
                         Log.d("landmark", "User is kneeling with leg: $kneel")
